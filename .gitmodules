@@ -1,0 +1,3 @@
+[submodule "crypki"]
+	path = crypki
+	url = https://github.com/theparanoids/crypki.git

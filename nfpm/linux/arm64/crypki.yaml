@@ -1,0 +1,40 @@
+# https://nfpm.goreleaser.com/configuration/
+name: crypki-softhsm
+description: Package for The Paranoids Crypki with SoftHSM for Athenz
+maintainer: ctyano <ctyano@duck.com>
+vendor: ctyano
+homepage: https://github.com/theparanoids/crypki
+license: Private
+arch: arm64
+platform: linux
+version: ${SEMVER}
+version_schema: semver
+depends:
+  - softhsm2
+  - opensc
+  - openssl
+suggests:
+  - curl
+contents:
+  - src: crypki-softhsm_arm64/usr/bin/crypki-bin
+    dst: /usr/local/bin/crypki-bin
+  - src: crypki-softhsm_arm64/usr/bin/gen-cacert
+    dst: /usr/local/bin/gen-cacert
+  - dst: /opt/crypki
+    type: dir
+    file_info:
+      mode: 0755
+  - src: crypki-softhsm_arm64/opt/crypki/init_hsm.sh
+    dst: /opt/crypki/init_hsm.sh
+  - src: crypki-softhsm_arm64/opt/crypki/crypki.conf.sample
+    dst: /opt/crypki/crypki.conf.sample
+  - src: crypki-softhsm_arm64/opt/crypki/crypki-softhsm.json
+    dst: /opt/crypki/crypki-softhsm.json
+  - dst: /opt/crypki/slot_pubkeys
+    type: dir
+    file_info:
+      mode: 0755
+  - dst: /var/log/crypki
+    type: dir
+    file_info:
+      mode: 0755
