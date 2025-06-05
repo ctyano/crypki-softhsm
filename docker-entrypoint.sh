@@ -3,14 +3,14 @@
 
 if [ -z "${ROOT}" ]; then
     BINDIR=$(dirname "$0")
-    export ROOT=$(cd $BINDIR/..;pwd)
+    export ROOT=$(cd $BINDIR;pwd)
     echo "Setting Crypki root directory to ${ROOT}"
 fi
 
 CRYPKI_STOP_TIMEOUT=${CRYPKI_STOP_TIMEOUT:-30}
 CRYPKI_PID_DIR=${CRYPKI_PID_DIR:-$ROOT/pid}
 CRYPKI_LOG_DIR=${CRYPKI_LOG_DIR:-$ROOT/logs}
-CRYPKI_CONFIG=${CRYPKI_CONFIG:-$ROOT//crypki-softhsm.json}
+CRYPKI_CONFIG=${CRYPKI_CONFIG:-$ROOT/crypki-softhsm.json}
 
 # make sure our pid and log directories exist
 
