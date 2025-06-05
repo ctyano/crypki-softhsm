@@ -40,5 +40,5 @@ RUN mkdir -p /var/log/crypki /opt/crypki /opt/crypki/slot_pubkeys \
 && apt install -y softhsm2 opensc openssl tini curl \
 && /bin/bash -x /opt/crypki/init_hsm.sh
 
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/opt/crypki/docker-entrypoint.sh"]
