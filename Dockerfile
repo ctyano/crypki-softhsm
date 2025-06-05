@@ -33,10 +33,12 @@ COPY --from=0 ${CRYPKI_DIR}/crypki-bin /usr/bin/
 COPY --from=0 ${CRYPKI_DIR}/gen-cacert /usr/bin/
 COPY ./crypki/docker-softhsm/init_hsm.sh /opt/crypki
 COPY ./crypki/docker-softhsm/crypki.conf.sample /opt/crypki
+COPY ./docker-entrypoint.sh /opt/crypki
 
 RUN mkdir -p /var/log/crypki /opt/crypki /opt/crypki/slot_pubkeys \
 && apt update \
-&& apt install -y softhsm2 opensc openssl \
+&& apt install -y softhsm2 opensc openssl tini \
 && /bin/bash -x /opt/crypki/init_hsm.sh
 
-CMD ["/usr/bin/crypki-bin", "-config", "/opt/crypki/crypki-softhsm.json"]
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["/opt/crypki/docker-entrypoint.sh"]
