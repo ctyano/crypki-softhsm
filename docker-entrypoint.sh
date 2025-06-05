@@ -3,7 +3,7 @@
 
 if [ -z "${ROOT}" ]; then
     BINDIR=$(dirname "$0")
-    export ROOT=$(cd $BINDIR;pwd)
+    export ROOT=$(cd $BINDIR/..;pwd)
     echo "Setting Crypki root directory to ${ROOT}"
 fi
 

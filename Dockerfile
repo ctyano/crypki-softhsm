@@ -31,14 +31,14 @@ WORKDIR /opt/crypki
 
 COPY --from=0 ${CRYPKI_DIR}/crypki-bin /usr/bin/
 COPY --from=0 ${CRYPKI_DIR}/gen-cacert /usr/bin/
-COPY ./crypki/docker-softhsm/init_hsm.sh /opt/crypki
+COPY ./crypki/docker-softhsm/init_hsm.sh /opt/crypki/bin
 COPY ./crypki/docker-softhsm/crypki.conf.sample /opt/crypki
-COPY ./docker-entrypoint.sh /opt/crypki
+COPY ./docker-entrypoint.sh /opt/crypki/bin
 
 RUN mkdir -p /var/log/crypki /opt/crypki /opt/crypki/slot_pubkeys \
 && apt update \
 && apt install -y softhsm2 opensc openssl tini curl \
-&& /bin/bash -x /opt/crypki/init_hsm.sh
+&& /bin/bash -x /opt/crypki/bin/init_hsm.sh
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["/opt/crypki/docker-entrypoint.sh"]
+CMD ["/opt/crypki/bin/docker-entrypoint.sh"]
