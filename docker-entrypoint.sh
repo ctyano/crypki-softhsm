@@ -17,6 +17,10 @@ CRYPKI_CONFIG=${CRYPKI_CONFIG:-$ROOT/crypki-softhsm.json}
 mkdir -p "${CRYPKI_PID_DIR}"
 mkdir -p "${CRYPKI_LOG_DIR}"
 
+# initialize hsm
+
+/bin/bash -x /opt/crypki/init_hsm.sh
+
 /usr/bin/crypki-bin -config ${CRYPKI_CONFIG} 2>&1 &
 PID=$!
 
