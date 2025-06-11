@@ -1,6 +1,5 @@
-.classpath
-.project
-.settings
-target
-pom.xml
 crypki
+log
+shm
+tls-crt
+

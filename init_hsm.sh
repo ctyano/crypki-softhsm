@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 umask 022
 
@@ -54,16 +55,40 @@ set -e # exit if anything at all fails after here
 #
 # {re-}initialize slots with SO PIN
 #
-user_ssh_slot=`${softhsm} --init-token --slot 0 --label ${user_ssh_label} --so-pin ${SOPIN} --pin ${USERPIN} | awk '{print $NF}'`
-host_x509_slot=`${softhsm} --init-token --slot 1 --label ${host_x509_label} --so-pin ${SOPIN} --pin ${USERPIN} | awk '{print $NF}'`
-host_ssh_slot=`${softhsm} --init-token --slot 2 --label ${host_ssh_label} --so-pin ${SOPIN} --pin ${USERPIN} | awk '{print $NF}'`
-sign_blob_slot=`${softhsm} --init-token --slot 3 --label ${sign_blob_label} --so-pin ${SOPIN} --pin ${USERPIN} | awk '{print $NF}'`
+export user_ssh_slot=`${softhsm} --init-token --slot 0 --label ${user_ssh_label} --so-pin ${SOPIN} --pin ${USERPIN} | awk '{print $NF}'`
+export host_x509_slot=`${softhsm} --init-token --slot 1 --label ${host_x509_label} --so-pin ${SOPIN} --pin ${USERPIN} | awk '{print $NF}'`
+export host_ssh_slot=`${softhsm} --init-token --slot 2 --label ${host_ssh_label} --so-pin ${SOPIN} --pin ${USERPIN} | awk '{print $NF}'`
+export sign_blob_slot=`${softhsm} --init-token --slot 3 --label ${sign_blob_label} --so-pin ${SOPIN} --pin ${USERPIN} | awk '{print $NF}'`
 
-# Generate the Keys in the PKCS11 slot
-${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${user_ssh_slot} --keypairgen --label ${user_ssh_label} --key-type ${user_ssh_keytype} --private
-${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${host_x509_slot} --keypairgen --label ${host_x509_label} --key-type ${host_x509_keytype} --private
-${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${host_ssh_slot} --keypairgen --label ${host_ssh_label} --key-type ${host_ssh_keytype} --private
-${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${sign_blob_slot} --keypairgen --label ${sign_blob_label} --key-type ${sign_blob_keytype} --private
+# Generate the Keys in the PKCS11 slot, or Import the Keys to the PKCS11 slot
+if [ -z "${IMPORT_USER_SSH_KEY}" ]; then
+    echo "Generating keypair to slot:${user_ssh_slot} label:${user_ssh_label}"
+    ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${user_ssh_slot} --keypairgen --label ${user_ssh_label} --key-type ${user_ssh_keytype} --private
+else
+    echo "Importing file:${IMPORT_USER_SSH_KEY} to slot:${user_ssh_slot} label:${user_ssh_label}"
+    ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${user_ssh_slot} --write-object ${IMPORT_USER_SSH_KEY} --label ${user_ssh_label} --type privkey
+fi
+if [ -z "${IMPORT_HOST_X509_KEY}" ]; then
+    echo "Generating keypair to slot:${host_x509_slot} label:${host_x509_label}"
+    ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${host_x509_slot} --keypairgen --label ${host_x509_label} --key-type ${host_x509_keytype} --private
+else
+    echo "Importing file:${IMPORT_HOST_X509_KEY} to slot:${host_x509_slot} label:${host_x509_label}"
+    ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${host_x509_slot} --write-object ${IMPORT_HOST_X509_KEY} --label ${host_x509_label} --type privkey
+fi
+if [ -z "${IMPORT_HOST_SSH_KEY}" ]; then
+    echo "Generating keypair to slot:${host_ssh_slot} label:${host_ssh_label}"
+    ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${host_ssh_slot} --keypairgen --label ${host_ssh_label} --key-type ${host_ssh_keytype} --private
+else
+    echo "Importing file:${IMPORT_HOST_SSH_KEY} to slot:${host_ssh_slot} label:${host_ssh_label}"
+    ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${host_ssh_slot} --write-object ${IMPORT_HOST_SSH_KEY} --label ${host_ssh_label} --type privkey
+fi
+if [ -z "${IMPORT_SIGN_BLOB_KEY}" ]; then
+    echo "Generating keypair to slot:${sign_blob_slot} label:${sign_blob_label}"
+    ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${sign_blob_slot} --keypairgen --label ${sign_blob_label} --key-type ${sign_blob_keytype} --private
+else
+    echo "Importing file:${IMPORT_SIGN_BLOB_KEY} to slot:${sign_blob_slot} label:${sign_blob_label}"
+    ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${sign_blob_slot} --write-object ${IMPORT_SIGN_BLOB_KEY} --label ${sign_blob_label} --type privkey
+fi
 
 # Store the CA public keys of each PKCS11 slot.
 # The public keys are useful to configure CA for PSSHCA deployment.
@@ -71,10 +96,10 @@ ${p11tool} --module ${modulepath} -r --type pubkey --slot ${user_ssh_slot} --lab
 ${p11tool} --module ${modulepath} -r --type pubkey --slot ${host_x509_slot} --label ${host_x509_label} -l --output-file ${slot_pubkeys_path}/${host_x509_label}_pub.der --pin=${USERPIN}
 ${p11tool} --module ${modulepath} -r --type pubkey --slot ${host_ssh_slot} --label ${host_ssh_label} -l --output-file ${slot_pubkeys_path}/${host_ssh_label}_pub.der --pin=${USERPIN}
 ${p11tool} --module ${modulepath} -r --type pubkey --slot ${sign_blob_slot} --label ${sign_blob_label} -l --output-file ${slot_pubkeys_path}/${sign_blob_label}_pub.der --pin=${USERPIN}
-openssl ${user_ssh_cipher_cmd} -inform DER -in ${slot_pubkeys_path}/${user_ssh_label}_pub.der -pubin -out ${slot_pubkeys_path}/${user_ssh_label}_pub.pem
-openssl ${host_x509_cipher_cmd} -inform DER -in ${slot_pubkeys_path}/${host_x509_label}_pub.der -pubin -out ${slot_pubkeys_path}/${host_x509_label}_pub.pem
-openssl ${host_ssh_cipher_cmd} -inform DER -in ${slot_pubkeys_path}/${host_ssh_label}_pub.der -pubin -out ${slot_pubkeys_path}/${host_ssh_label}_pub.pem
-openssl ${sign_blob_cipher_cmd} -inform DER -in ${slot_pubkeys_path}/${sign_blob_label}_pub.der -pubin -out ${slot_pubkeys_path}/${sign_blob_label}_pub.pem
+${openssl} ${user_ssh_cipher_cmd} -inform DER -in ${slot_pubkeys_path}/${user_ssh_label}_pub.der -pubin -out ${slot_pubkeys_path}/${user_ssh_label}_pub.pem
+${openssl} ${host_x509_cipher_cmd} -inform DER -in ${slot_pubkeys_path}/${host_x509_label}_pub.der -pubin -out ${slot_pubkeys_path}/${host_x509_label}_pub.pem
+${openssl} ${host_ssh_cipher_cmd} -inform DER -in ${slot_pubkeys_path}/${host_ssh_label}_pub.der -pubin -out ${slot_pubkeys_path}/${host_ssh_label}_pub.pem
+${openssl} ${sign_blob_cipher_cmd} -inform DER -in ${slot_pubkeys_path}/${sign_blob_label}_pub.der -pubin -out ${slot_pubkeys_path}/${sign_blob_label}_pub.pem
 
 CRYPKI_CONFIG=`sed -e "s/SLOTNUM_USER_SSH/${user_ssh_slot}/g; s/SLOTNUM_HOST_X509/${host_x509_slot}/g; s/SLOTNUM_HOST_SSH/${host_ssh_slot}/g; s/SLOTNUM_SIGN_BLOB/${sign_blob_slot}/g" ${CRYPKI_CONFIG_TEMPLATE:-/opt/crypki/crypki.conf.sample}`
 
