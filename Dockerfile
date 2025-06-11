@@ -34,6 +34,7 @@ COPY --from=0 ${CRYPKI_DIR}/gen-cacert /usr/bin/
 #COPY ./crypki/docker-softhsm/init_hsm.sh /opt/crypki
 COPY ./init_hsm.sh /opt/crypki
 ENV CRYPKI_CONFIG_TEMPLATE=/opt/crypki/crypki.conf.sample
+ENV CRYPKI_CONFIG_FILE=/opt/crypki/crypki-softhsm.json
 COPY ./crypki/docker-softhsm/crypki.conf.sample /opt/crypki
 COPY ./docker-entrypoint.sh /opt/crypki
 

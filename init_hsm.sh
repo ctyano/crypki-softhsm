@@ -103,4 +103,4 @@ ${openssl} ${sign_blob_cipher_cmd} -inform DER -in ${slot_pubkeys_path}/${sign_b
 
 CRYPKI_CONFIG=`sed -e "s/SLOTNUM_USER_SSH/${user_ssh_slot}/g; s/SLOTNUM_HOST_X509/${host_x509_slot}/g; s/SLOTNUM_HOST_SSH/${host_ssh_slot}/g; s/SLOTNUM_SIGN_BLOB/${sign_blob_slot}/g" ${CRYPKI_CONFIG_TEMPLATE:-/opt/crypki/crypki.conf.sample}`
 
-echo "${CRYPKI_CONFIG}" > /opt/crypki/crypki-softhsm.json
+echo "${CRYPKI_CONFIG}" > ${CRYPKI_CONFIG_FILE}

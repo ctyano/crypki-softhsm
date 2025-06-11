@@ -7,10 +7,10 @@ if [ -z "${ROOT}" ]; then
     echo "Setting Crypki root directory to ${ROOT}"
 fi
 
-CRYPKI_STOP_TIMEOUT=${CRYPKI_STOP_TIMEOUT:-30}
-CRYPKI_PID_DIR=${CRYPKI_PID_DIR:-$ROOT/pid}
-CRYPKI_LOG_DIR=${CRYPKI_LOG_DIR:-$ROOT/logs}
-CRYPKI_CONFIG=${CRYPKI_CONFIG:-$ROOT/crypki-softhsm.json}
+export CRYPKI_STOP_TIMEOUT=${CRYPKI_STOP_TIMEOUT:-30}
+export CRYPKI_PID_DIR=${CRYPKI_PID_DIR:-$ROOT/pid}
+export CRYPKI_LOG_DIR=${CRYPKI_LOG_DIR:-$ROOT/logs}
+export CRYPKI_CONFIG_FILE=${CRYPKI_CONFIG_FILE:-$ROOT/crypki-softhsm.json}
 
 # make sure our pid and log directories exist
 
@@ -21,7 +21,7 @@ mkdir -p "${CRYPKI_LOG_DIR}"
 
 /bin/bash -x /opt/crypki/init_hsm.sh
 
-/usr/bin/crypki-bin -config ${CRYPKI_CONFIG} 2>&1 &
+/usr/bin/crypki-bin -config ${CRYPKI_CONFIG_FILE} 2>&1 &
 PID=$!
 
 sleep 2;
