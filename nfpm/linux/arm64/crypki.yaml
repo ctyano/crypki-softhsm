@@ -24,12 +24,12 @@ contents:
     type: dir
     file_info:
       mode: 0755
+  - src: crypki-softhsm_amd64/opt/crypki/docker-entrypoint.sh
+    dst: /opt/crypki/docker-entrypoint.sh
   - src: crypki-softhsm_arm64/opt/crypki/init_hsm.sh
     dst: /opt/crypki/init_hsm.sh
   - src: crypki-softhsm_arm64/opt/crypki/crypki.conf.sample
     dst: /opt/crypki/crypki.conf.sample
-  - src: crypki-softhsm_arm64/opt/crypki/crypki-softhsm.json
-    dst: /opt/crypki/crypki-softhsm.json
   - dst: /opt/crypki/slot_pubkeys
     type: dir
     file_info:
