@@ -67,6 +67,7 @@ if [ -z "${USER_SSH_PRIVATE_KEY:=}" -o -z "${USER_SSH_PUBLIC_KEY:=}" ]; then
 else
     echo "Importing file:${USER_SSH_PRIVATE_KEY} to slot:${user_ssh_slot} label:${user_ssh_label}"
     ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${user_ssh_slot} --write-object ${USER_SSH_PRIVATE_KEY} --label ${user_ssh_label} --type privkey
+    echo "Importing file:${USER_SSH_PUBLIC_KEY} to slot:${user_ssh_slot} label:${user_ssh_label}"
     ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${user_ssh_slot} --write-object ${USER_SSH_PUBLIC_KEY} --label ${user_ssh_label} --type pubkey
 fi
 if [ -z "${HOST_X509_PRIVATE_KEY:=}" -o -z "${HOST_X509_PUBLIC_KEY:=}" ]; then
@@ -75,6 +76,7 @@ if [ -z "${HOST_X509_PRIVATE_KEY:=}" -o -z "${HOST_X509_PUBLIC_KEY:=}" ]; then
 else
     echo "Importing file:${HOST_X509_PRIVATE_KEY} to slot:${host_x509_slot} label:${host_x509_label}"
     ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${host_x509_slot} --write-object ${HOST_X509_PRIVATE_KEY} --label ${host_x509_label} --type privkey
+    echo "Importing file:${HOST_X509_PUBLIC_KEY} to slot:${host_x509_slot} label:${host_x509_label}"
     ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${host_x509_slot} --write-object ${HOST_X509_PUBLIC_KEY} --label ${host_x509_label} --type pubkey
 fi
 if [ -z "${HOST_SSH_PRIVATE_KEY:=}" -o -z "${HOST_SSH_PUBLIC_KEY:=}" ]; then
@@ -83,6 +85,7 @@ if [ -z "${HOST_SSH_PRIVATE_KEY:=}" -o -z "${HOST_SSH_PUBLIC_KEY:=}" ]; then
 else
     echo "Importing file:${HOST_SSH_PRIVATE_KEY} to slot:${host_ssh_slot} label:${host_ssh_label}"
     ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${host_ssh_slot} --write-object ${HOST_SSH_PRIVATE_KEY} --label ${host_ssh_label} --type privkey
+    echo "Importing file:${HOST_SSH_PUBLIC_KEY} to slot:${host_ssh_slot} label:${host_ssh_label}"
     ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${host_ssh_slot} --write-object ${HOST_SSH_PUBLIC_KEY} --label ${host_ssh_label} --type pubkey
 fi
 if [ -z "${SIGN_BLOB_PRIVATE_KEY:=}" -o -z "${SIGN_BLOB_PUBLIC_KEY:=}" ]; then
@@ -91,6 +94,7 @@ if [ -z "${SIGN_BLOB_PRIVATE_KEY:=}" -o -z "${SIGN_BLOB_PUBLIC_KEY:=}" ]; then
 else
     echo "Importing file:${SIGN_BLOB_PRIVATE_KEY} to slot:${sign_blob_slot} label:${sign_blob_label}"
     ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${sign_blob_slot} --write-object ${SIGN_BLOB_PRIVATE_KEY} --label ${sign_blob_label} --type privkey
+    echo "Importing file:${SIGN_BLOB_PUBLIC_KEY} to slot:${sign_blob_slot} label:${sign_blob_label}"
     ${p11tool} --module ${modulepath} --pin ${USERPIN} --slot ${sign_blob_slot} --write-object ${SIGN_BLOB_PUBLIC_KEY} --label ${sign_blob_label} --type pubkey
 fi
 
