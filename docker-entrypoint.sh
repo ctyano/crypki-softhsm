@@ -9,7 +9,7 @@ fi
 
 export CRYPKI_STOP_TIMEOUT=${CRYPKI_STOP_TIMEOUT:-30}
 export CRYPKI_PID_DIR=${CRYPKI_PID_DIR:-$ROOT/pid}
-export CRYPKI_LOG_DIR=${CRYPKI_LOG_DIR:-$ROOT/logs}
+export CRYPKI_LOG_DIR=${CRYPKI_LOG_DIR:-/var/log/crypki}
 export CRYPKI_CONFIG_FILE=${CRYPKI_CONFIG_FILE:-$ROOT/crypki-softhsm.json}
 
 # make sure our pid and log directories exist
@@ -21,11 +21,12 @@ mkdir -p "${CRYPKI_LOG_DIR}"
 
 /bin/bash -x /opt/crypki/init_hsm.sh
 
-/usr/bin/crypki-bin -config ${CRYPKI_CONFIG_FILE} 2>&1 &
+/usr/bin/crypki-bin -config ${CRYPKI_CONFIG_FILE:-/opt/crypki/crypki-softhsm.json} 2>&1 &
 PID=$!
 
 sleep 2;
 if ! kill -0 "${PID}" > /dev/null 2>&1; then
+    cat /var/log/crypki/server.log
     exit 1
 fi
 
