@@ -37,7 +37,6 @@ COPY --from=0 ${CRYPKI_DIR}/sign-x509cert /usr/bin/
 COPY ./init_hsm.sh /opt/crypki
 COPY ./crypki/docker-softhsm/crypki.conf.sample /opt/crypki
 COPY ./docker-entrypoint.sh /opt/crypki
-COPY ./gen_certs.sh /opt/crypki
 COPY ./cacert.crypki.config.template /opt/crypki
 COPY ./crypki.openssl.config /opt/crypki
 

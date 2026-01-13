@@ -21,8 +21,6 @@ mkdir -p "${CRYPKI_LOG_DIR}"
 
 /bin/bash -x /opt/crypki/init_hsm.sh
 
-/bin/bash -x /opt/crypki/gen_certs.sh
-
 /usr/bin/crypki-bin -config ${CRYPKI_CONFIG_FILE:-/opt/crypki/crypki-softhsm.json} 2>&1 &
 PID=$!
 
