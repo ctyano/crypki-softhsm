@@ -1,0 +1,14 @@
+{
+    "Identifier": "x509-key",
+    "CommonName": "Crypki SoftHSM Root CA",
+    "Country": "",
+    "Organization": "",
+    "OrganizationalUnit": "",
+    "KeyLabel": "host_x509",
+    "KeyType": 3,
+    "SignatureAlgo": 11,
+    "PKCS11ModulePath": "/usr/lib/softhsm/libsofthsm2.so",
+    "SlotNumber": SLOTNUM_HOST_X509,
+    "UserPinPath": "/dev/shm/slot_pwd.txt",
+    "ValidityPeriod": 63072000
+}
