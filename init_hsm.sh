@@ -13,11 +13,13 @@ USERPIN=123456
 CACERT_CRYPKI_CONFIG_TEMPLATE=${CACERT_CRYPKI_CONFIG_TEMPLATE:-/opt/crypki/cacert.crypki.config.template}
 CACERT_CRYPKI_CONFIG_FILE=${CACERT_CRYPKI_CONFIG_FILE:-/opt/crypki/cacert.crypki-softhsm.json}
 CACERT_FILE=${CACERT_FILE:-/tmp/ca.cert.pem}
+CACERT_K8S_SECRET=${CACERT_K8S_SECRET:-crypki-ca}
 SERVERCERT_VALIDITY_DAYS=${SERVERCERT_VALIDITY_DAYS:-730}
 SERVERCERT_CSR_CONFIG_FILE=${SERVERCERT_CSR_CONFIG_FILE:-/opt/crypki/crypki.openssl.config}
 SERVERCERT_CSR_FILE=${SERVERCERT_CSR_FILE:-/tmp/servercert.csr.pem}
 SERVERCERT_KEY_FILE=${SERVERCERT_KEY_FILE:-/tmp/server.key.pem}
 SERVERCERT_FILE=${SERVERCERT_FILE:-/tmp/server.cert.pem}
+EXPORT_CACERT_TO_K8S_SECRET=${EXPORT_CACERT_TO_K8S_SECRET:-true}
 
 modulepath="/usr/lib/softhsm/libsofthsm2.so" # softlink to the exact shared library based on the os arch
 slot_pubkeys_path="/opt/crypki/slot_pubkeys"
@@ -149,3 +151,85 @@ ${openssl} req -config ${SERVERCERT_CSR_CONFIG_FILE} -new -key ${SERVERCERT_KEY_
 ${signx509cert} -config=${CACERT_CRYPKI_CONFIG_FILE} -days=${SERVERCERT_VALIDITY_DAYS} -cacert=${CACERT_FILE} -in=${SERVERCERT_CSR_FILE} -out=${SERVERCERT_FILE}
 
 ${openssl} verify -CAfile ${CACERT_FILE} ${SERVERCERT_FILE}
+
+# --- NEW: Export CA to Kubernetes Secret ---
+
+export_ca_to_k8s_secret() {
+    local secret_name="${1:-${CACERT_K8S_SECRET}}"
+    local ca_file="${2}"
+    local namespace
+
+    # Auto-detect namespace or default to 'default'
+    if [ -f /var/run/secrets/kubernetes.io/serviceaccount/namespace ]; then
+        namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+    else
+        namespace="default"
+    fi
+
+    echo "==> Attempting to export CA Cert to K8s Secret: ${secret_name} in namespace: ${namespace}"
+
+    # Check if necessary K8s token exists
+    local token_path="/var/run/secrets/kubernetes.io/serviceaccount/token"
+    local ca_cert_path="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+
+    if [ ! -f "$token_path" ]; then
+        echo "    Error: K8s ServiceAccount token not found. Not running in K8s?"
+        return 1
+    fi
+
+    # Prepare JSON payload
+    # We must base64 encode the cert content single-line
+    local b64_cert
+    b64_cert=$(cat "$ca_file" | base64 | tr -d '\n')
+
+    local json_payload
+    json_payload=$(cat <<EOF
+{
+  "apiVersion": "v1",
+  "kind": "Secret",
+  "metadata": {
+    "name": "${secret_name}",
+    "namespace": "${namespace}"
+  },
+  "type": "Opaque",
+  "data": {
+    "ca.crt": "${b64_cert}"
+  }
+}
+EOF
+)
+
+    # Send Request to K8s API
+    # We use --fail to detect errors (like 403 Forbidden)
+    local k8s_api="https://kubernetes.default.svc"
+
+    # 1. Try to create (POST)
+    echo "    Creating secret..."
+    http_code=$(curl -s -o /dev/null -w "%{http_code}" --cacert "$ca_cert_path" \
+        -H "Authorization: Bearer $(cat $token_path)" \
+        -H "Content-Type: application/json" \
+        -X POST "${k8s_api}/api/v1/namespaces/${namespace}/secrets" \
+        -d "$json_payload")
+
+    if [ "$http_code" -eq 201 ]; then
+        echo "    Secret created successfully."
+    elif [ "$http_code" -eq 409 ]; then
+        echo "    Secret already exists. Attempting update (PUT)..."
+        # 2. If exists, update (PUT)
+        curl -s --cacert "$ca_cert_path" \
+            -H "Authorization: Bearer $(cat $token_path)" \
+            -H "Content-Type: application/json" \
+            -X PUT "${k8s_api}/api/v1/namespaces/${namespace}/secrets/${secret_name}" \
+            -d "$json_payload"
+        echo "    Secret updated."
+    else
+        echo "    Failed to create secret. HTTP Code: $http_code"
+        echo "    Ensure the Pod's ServiceAccount has \"create\" and \"update\" permissions on Secrets."
+    fi
+}
+
+# Trigger export if flag is set
+if [ "${EXPORT_CACERT_TO_K8S_SECRET}" = "true" ]; then
+    set -x
+    export_ca_to_k8s_secret "${CACERT_K8S_SECRET}" "${CACERT_FILE}"
+fi
