@@ -10,5 +10,5 @@
     "PKCS11ModulePath": "/usr/lib/softhsm/libsofthsm2.so",
     "SlotNumber": SLOTNUM_HOST_X509,
     "UserPinPath": "/dev/shm/slot_pwd.txt",
-    "ValidityPeriod" 63072000
+    "ValidityPeriod": 63072000
 }
