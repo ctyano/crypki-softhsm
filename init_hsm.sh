@@ -26,6 +26,7 @@ CLIENTCERT_KEY_FILE=${CLIENTCERT_KEY_FILE:-/tmp/client.key.pem}
 CLIENTCERT_FILE=${CLIENTCERT_FILE:-/tmp/client.cert.pem}
 CLIENTCERT_K8S_SECRET=${CLIENTCERT_K8S_SECRET:-crypki-client}
 EXPORT_CACERT_TO_K8S_SECRET=${EXPORT_CACERT_TO_K8S_SECRET:-true}
+EXPORT_CLIENTCERT_TO_K8S_SECRET=${EXPORT_CLIENTCERT_TO_K8S_SECRET:-true}
 
 modulepath="/usr/lib/softhsm/libsofthsm2.so" # softlink to the exact shared library based on the os arch
 slot_pubkeys_path="/opt/crypki/slot_pubkeys"
@@ -222,8 +223,6 @@ export_clientcert_to_k8s_secret() {
     # Check if necessary K8s token exists
     local token_path="/var/run/secrets/kubernetes.io/serviceaccount/token"
     local ca_cert_path="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-    local client_cert_path="/var/run/secrets/kubernetes.io/serviceaccount/tls.crt"
-    local client_key_path="/var/run/secrets/kubernetes.io/serviceaccount/tls.key"
 
     if [ ! -f "$token_path" ]; then
         echo "    Error: K8s ServiceAccount token not found. Not running in K8s?"
@@ -288,5 +287,8 @@ EOF
 if [ "${EXPORT_CACERT_TO_K8S_SECRET}" = "true" ]; then
     set -x
     export_ca_to_k8s_secret "${CACERT_K8S_SECRET}" "${CACERT_FILE}"
+fi
+if [ "${EXPORT_CLIENTCERT_TO_K8S_SECRET}" = "true" ]; then
+    set -x
     export_clientcert_to_k8s_secret "${CLIENTCERT_K8S_SECRET}" "${CLIENTCERT_FILE}" "${CLIENTCERT_KEY_FILE}"
 fi
