@@ -5,7 +5,8 @@ COPY ./crypki ${CRYPKI_DIR}
 WORKDIR ${CRYPKI_DIR}
 RUN go get -v ./... && \
     go build -o crypki-bin ${CRYPKI_DIR}/cmd/crypki && \
-    go build -o gen-cacert ${CRYPKI_DIR}/cmd/gen-cacert
+    go build -o gen-cacert ${CRYPKI_DIR}/cmd/gen-cacert && \
+    go build -o sign-x509cert ${CRYPKI_DIR}/cmd/sign-x509cert
 
 FROM docker.io/library/debian:bookworm-slim
 
@@ -31,10 +32,14 @@ WORKDIR /opt/crypki
 
 COPY --from=0 ${CRYPKI_DIR}/crypki-bin /usr/bin/
 COPY --from=0 ${CRYPKI_DIR}/gen-cacert /usr/bin/
+COPY --from=0 ${CRYPKI_DIR}/sign-x509cert /usr/bin/
 #COPY ./crypki/docker-softhsm/init_hsm.sh /opt/crypki
 COPY ./init_hsm.sh /opt/crypki
 COPY ./crypki/docker-softhsm/crypki.conf.sample /opt/crypki
 COPY ./docker-entrypoint.sh /opt/crypki
+COPY ./gen_certs.sh /opt/crypki
+COPY ./cacert.crypki.config.template /opt/crypki
+COPY ./crypki.openssl.config /opt/crypki
 
 RUN mkdir -p /var/log/crypki /opt/crypki /opt/crypki/slot_pubkeys \
 && apt update \
