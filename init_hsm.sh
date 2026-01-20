@@ -129,6 +129,8 @@ ${signx509cert} -config=${CACERT_CRYPKI_CONFIG_FILE} -days=${CLIENTCERT_VALIDITY
 
 ${openssl} verify -CAfile ${CACERT_FILE} ${CLIENTCERT_FILE}
 
+chown 10001:1001 ${CACERT_FILE} ${SERVERCERT_KEY_FILE} ${SERVERCERT_FILE} ${CLIENTCERT_KEY_FILE} ${CLIENTCERT_FILE}
+
 # --- NEW: Export CA and administration client certificates to Kubernetes Secret ---
 
 export_ca_to_k8s_secret() {
